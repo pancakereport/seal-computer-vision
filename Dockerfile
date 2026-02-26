@@ -1,53 +1,38 @@
 FROM nvcr.io/nvidia/tensorflow:20.09-tf2-py3
 
-RUN pip3 install --upgrade pip
-
-RUN pip3 install jupyter
-
-RUN pip3 install jupyterlab
-
-RUN pip3 install keras==2.4.0
-
-RUN pip3 install tensorflow==2.4.0
-
-RUN pip3 install keras_retinanet
-
-RUN pip3 install matplotlib
-
-RUN pip3 install numpy
-
-RUN pip3 install progressbar2
-
-RUN pip3 install Pillow
-
-RUN pip3 install pandas
-
-RUN apt-get update
-
-RUN apt-get -y update
-
-RUN apt -y install git
-
-RUN apt-get -y install wget
-
 ARG DEBIAN_FRONTEND="noninteractive" 
+WORKDIR /app
 
-RUN apt-get -y install python3-opencv
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    wget \
+    python3-opencv \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/fizyr/keras-retinanet.git
+RUN pip3 install --no-cache-dir --upgrade pip && \
+    pip3 install --no-cache-dir \
+    jupyter \
+    jupyterlab \
+    keras==2.4.0 \
+    tensorflow==2.4.0 \
+    keras_retinanet \
+    matplotlib \
+    numpy \
+    progressbar2 \
+    Pillow \
+    pandas
 
-RUN git clone https://github.com/martinzlocha/anchor-optimization.git
+RUN git clone https://github.com/fizyr/keras-retinanet.git && \
+    git clone https://github.com/martinzlocha/anchor-optimization.git && \
+    git clone https://github.com/pancakereport/seal-computer-vision.git
 
-RUN git clone https://github.com/pancakereport/seal-computer-vision.git
+RUN mkdir -p seal-computer-vision/Data/harbor-seals/models && \
+    mkdir -p seal-computer-vision/Data/elephant-seals/models && \
+    wget -q https://github.com/fizyr/keras-retinanet/releases/download/0.5.1/resnet50_coco_best_v2.1.0.h5 && \
+    wget -q -P seal-computer-vision/Data/harbor-seals/models https://harbor-seal-models.s3.amazonaws.com/model_no_other.h5 && \
+    wget -q -P seal-computer-vision/Data/harbor-seals/models https://harbor-seal-models.s3.amazonaws.com/model_other.h5 && \
+    wget -q -P seal-computer-vision/Data/elephant-seals/models https://elephant-seal-models.s3.amazonaws.com/model_no_other.h5 && \
+    wget -q -P seal-computer-vision/Data/elephant-seals/models https://elephant-seal-models.s3.amazonaws.com/model_other.h5
 
-RUN wget https://github.com/fizyr/keras-retinanet/releases/download/0.5.1/resnet50_coco_best_v2.1.0.h5
-
-RUN wget -P harbor_seal_vm https://harbor-seal-models.s3.amazonaws.com/model_no_other.h5
-
-RUN wget -P harbor_seal_vm https://harbor-seal-models.s3.amazonaws.com/model_other.h5
-
-RUN wget -P mids-251-elephant-seal https://elephant-seal-models.s3.amazonaws.com/model_no_other.h5
-
-RUN wget -P mids-251-elephant-seal https://elephant-seal-models.s3.amazonaws.com/model_other.h5
 
 CMD ["python3", "keras-retinanet/setup.py", "build_ext", "--inplace"]
